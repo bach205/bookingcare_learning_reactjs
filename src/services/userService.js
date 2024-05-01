@@ -6,4 +6,17 @@ const handleLoginAPI = async (email, password) => {
 const findAllUserAPI = async (id) => {
     return await axios.get(`/api/user-manage?id=${id}`);
 }
-export { handleLoginAPI, findAllUserAPI };
+const createNewUser = async (data) => {
+    return await axios.post('/api/add-new-user', data);
+}
+const deleteUser = async (id) => {
+    return await axios.delete('/api/delete-user', {
+        data: { id },
+    });
+}
+const updateUser = async (data) => {
+    return await axios.put('/api/put-user',
+        data
+    )
+}
+export { handleLoginAPI, findAllUserAPI, createNewUser, deleteUser, updateUser };

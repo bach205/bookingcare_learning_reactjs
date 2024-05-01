@@ -1,31 +1,87 @@
 import React, { Component } from 'react';
-import { FormattedMessage } from 'react-intl';
+
 import { connect } from 'react-redux';
 import '../System/userManage.scss';
-import { findAllUserAPI } from '../../services';
+import { findAllUserAPI, deleteUser } from '../../services';
+import ModalUser from './createUserModal';
+import ModalUpdateUser from './updateUserModal';
 class UserManage extends Component {
 
     constructor(props) {
         super(props);
         this.state = {
-            user: [],
+            userList: [],
+            isShowModal: false,
+            isShowModalUpdating: false,
+            userData: {},
+            isClickUpdate: false,
         }
     }
 
     async componentDidMount() {
+        this.setFindAllUser();
+    }
+    toggleFunction = () => {
         this.setState({
-            user: await findAllUserAPI('ALL'),
+            isShowModal: !this.state.isShowModal,
         })
-        console.log(this.state.user.user);
+
     }
 
+    toggleUpdateFunction = () => {
+        this.setState({
+            isShowModalUpdating: !this.state.isShowModalUpdating,
+        })
+
+    }
+
+    setFindAllUser = async () => {
+        this.setState({
+            userList: await findAllUserAPI('ALL'),
+        })
+    }
+
+    handleDeleteUser = async (id) => {
+
+        await deleteUser(id);
+        await this.setFindAllUser();
+
+    }
+
+    checkClickUpdate = (state) => {
+        this.setState({
+            isClickUpdate: state,
+        })
+    }
 
     render() {
-        let arrUser = this.state.user.user;
+        console.log('dad', this.state.isClickUpdate);
+        let arrUser = this.state.userList.user;
         return (
             <>
+                <ModalUser
+                    isShow={this.state.isShowModal}
+                    toggle={this.toggleFunction}
+                    setFindAllUser={this.setFindAllUser}
+
+                ></ModalUser>
+                <ModalUpdateUser
+                    userData={this.state.userData}
+                    isShow={this.state.isShowModalUpdating}
+                    toggle={this.toggleUpdateFunction}
+                    setFindAllUser={this.setFindAllUser}
+                    isClickUpdate={this.state.isClickUpdate}
+                    checkClickUpdate={this.checkClickUpdate}
+                ></ModalUpdateUser>
                 <div className="text-center"><h2>Manage users</h2></div>
                 <div className='user-container mx-3 mt-3'>
+
+                    <button
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => { this.toggleFunction(); }}
+                        className='btn btn-primary px-3 mb-1'>
+                        <i className="fas fa-user-plus"></i> Add New</button>
+
                     <table>
                         <thead>
                             <tr>
@@ -38,7 +94,7 @@ class UserManage extends Component {
                         </thead>
                         <tbody>
                             {arrUser && arrUser.map((item) => {
-                                console.log(item.email);
+
                                 return (
                                     <>
                                         <tr>
@@ -48,10 +104,25 @@ class UserManage extends Component {
                                             <td>{item.lastName}</td>
                                             <td>{item.address}</td>
                                             <td>
-                                                <button className='edit'>
+                                                <button
+                                                    onClick={() => {
+
+                                                        this.state.userData = item;
+                                                        this.state.isClickUpdate = true;
+
+
+                                                        this.toggleUpdateFunction();
+                                                    }}
+                                                    type='button'
+                                                    className='edit'>
                                                     <i className="fas fa-edit"></i>
                                                 </button>
-                                                <button className='delete'><i className="fas fa-trash"></i></button>
+
+                                                <button type='button'
+                                                    onClick={() => this.handleDeleteUser(item.id)}
+                                                    className='delete'>
+                                                    <i className="fas fa-trash"></i>
+                                                </button>
                                             </td>
                                         </tr >
                                     </>
@@ -61,10 +132,13 @@ class UserManage extends Component {
                     </table>
                 </div >
             </>
-        );
-    }
 
+        );
+
+    }
 }
+
+
 
 const mapStateToProps = state => {
     return {
